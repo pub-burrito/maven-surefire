@@ -113,7 +113,7 @@ public class ProviderFactory
         surefireReflector.setIfDirScannerAware( o, providerConfiguration.getDirScannerParams() );
 
         Object provider = surefireReflector.instantiateProvider( starterConfiguration.getProviderClassName(), o );
-        Thread.currentThread().setContextClassLoader( systemClassLoader );
+//        Thread.currentThread().setContextClassLoader( systemClassLoader );
 
         return new ProviderProxy( provider, testsClassLoader );
     }

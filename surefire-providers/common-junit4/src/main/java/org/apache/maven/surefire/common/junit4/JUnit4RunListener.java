@@ -98,8 +98,12 @@ public class JUnit4RunListener
     public void testFailure( Failure failure )
         throws Exception
     {
+        String testHeader = failure.getTestHeader();
+        if (isInsaneJunitNullString( testHeader )){
+            testHeader = "Failure when constructing test";
+        }
         ReportEntry report =
-            SimpleReportEntry.withException( getClassName( failure.getDescription() ), failure.getTestHeader(),
+            SimpleReportEntry.withException( getClassName( failure.getDescription() ), testHeader,
                                              createStackTraceWriter( failure ) );
 
         if ( failure.getException() instanceof AssertionError )
@@ -146,9 +150,23 @@ public class JUnit4RunListener
         return new SimpleReportEntry( getClassName( description ), description.getDisplayName() );
     }
 
+    private boolean isInsaneJunitNullString(String value){
+        return "null".equals(  value );
+    }
     public String getClassName( Description description )
     {
-        return extractClassName( description );
+        String name = extractClassName( description );
+        if (name == null || isInsaneJunitNullString( name )){
+            // This can happen upon early failures (class instantiation error etc)
+            Description subDescription = description.getChildren().get( 0 );
+            if (subDescription != null){
+                name = extractClassName(  subDescription );
+            }
+            if (name == null){
+                name = "Test Instantiation Error";
+            }
+        }
+        return name;
     }
 
     public static String extractClassName( Description description )

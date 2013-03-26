@@ -129,7 +129,7 @@ public class ForkingRunListener
 
     public void testError( ReportEntry report )
     {
-        target.print( toString( BOOTERCODE_TEST_ERROR, report, testSetChannelId ) );
+            target.print( toString( BOOTERCODE_TEST_ERROR, report, testSetChannelId ) );
     }
 
     public void testFailed( ReportEntry report )
