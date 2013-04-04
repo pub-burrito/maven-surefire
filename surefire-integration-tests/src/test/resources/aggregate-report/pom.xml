@@ -32,17 +32,19 @@
     <module>child1</module>
     <module>child2</module>
   </modules>
-  
+
   <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>${surefire.version}</version>
-        <configuration>
-          <testFailureIgnore>true</testFailureIgnore>
-        </configuration>
-      </plugin>
-    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${surefire.version}</version>
+          <configuration>
+            <testFailureIgnore>true</testFailureIgnore>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
   
   <reporting>
