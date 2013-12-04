@@ -27,10 +27,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.StringTokenizer;
+
 import org.apache.maven.doxia.markup.HtmlMarkup;
 import org.apache.maven.doxia.sink.Sink;
 import org.apache.maven.doxia.sink.SinkEventAttributeSet;
 import org.apache.maven.doxia.sink.SinkEventAttributes;
+import org.apache.maven.doxia.util.DoxiaUtils;
 import org.apache.maven.reporting.MavenReportException;
 
 /**
@@ -115,12 +117,14 @@ public class SurefireReportGenerator
     {
         Map<String, String> summary = report.getSummary( testSuites );
 
+        
         sink.section1();
+        
+        sinkAnchor( sink, "Summary" );
+        
         sink.sectionTitle1();
         sink.text( bundle.getString( "report.surefire.label.summary" ) );
         sink.sectionTitle1_();
-
-        sinkAnchor( sink, "Summary" );
 
         constructHotLinks( sink, bundle );
 
@@ -183,11 +187,12 @@ public class SurefireReportGenerator
         NumberFormat numberFormat = report.getNumberFormat();
 
         sink.section1();
+        
+        sinkAnchor( sink, "Package_List" );
+        
         sink.sectionTitle1();
         sink.text( bundle.getString( "report.surefire.label.packagelist" ) );
         sink.sectionTitle1_();
-
-        sinkAnchor( sink, "Package_List" );
 
         constructHotLinks( sink, bundle );
 
@@ -259,11 +264,12 @@ public class SurefireReportGenerator
             List<ReportTestSuite> testSuiteList = entry.getValue();
 
             sink.section2();
+            
+            sinkAnchor( sink, packageName );
+            
             sink.sectionTitle2();
             sink.text( packageName );
             sink.sectionTitle2_();
-
-            sinkAnchor( sink, packageName );
 
             boolean showTable = false;
 
@@ -312,7 +318,7 @@ public class SurefireReportGenerator
 
                         sink.tableCell();
 
-                        sink.link( "#" + suite.getPackageName() + suite.getName() );
+                        sink.link( "#" + DoxiaUtils.encodeId( suite.getPackageName() + suite.getName() ) );
 
                         if ( suite.getNumberOfErrors() > 0 )
                         {
@@ -374,11 +380,12 @@ public class SurefireReportGenerator
         NumberFormat numberFormat = report.getNumberFormat();
 
         sink.section1();
+        
+        sinkAnchor( sink, "Test_Cases" );
+        
         sink.sectionTitle1();
         sink.text( bundle.getString( "report.surefire.label.testcases" ) );
         sink.sectionTitle1_();
-
-        sinkAnchor( sink, "Test_Cases" );
 
         constructHotLinks( sink, bundle );
 
@@ -389,11 +396,12 @@ public class SurefireReportGenerator
             if ( testCases != null && !testCases.isEmpty() )
             {
                 sink.section2();
+                
+                sinkAnchor( sink, suite.getPackageName() + suite.getName() );
+                
                 sink.sectionTitle2();
                 sink.text( suite.getName() );
                 sink.sectionTitle2_();
-
-                sinkAnchor( sink, suite.getPackageName() + suite.getName() );
 
                 boolean showTable = false;
 
@@ -425,7 +433,7 @@ public class SurefireReportGenerator
 
                             if ( failure != null )
                             {
-                                sink.link( "#" + testCase.getFullName() );
+                                sink.link( "#" + DoxiaUtils.encodeId( testCase.getFullName() ) );
 
                                 sinkIcon( (String) failure.get( "type" ), sink );
 
@@ -550,11 +558,12 @@ public class SurefireReportGenerator
         if ( failIter != null )
         {
             sink.section1();
+            
+            sinkAnchor( sink, "Failure_Details" );
+            
             sink.sectionTitle1();
             sink.text( bundle.getString( "report.surefire.label.failuredetails" ) );
             sink.sectionTitle1_();
-
-            sinkAnchor( sink, "Failure_Details" );
 
             constructHotLinks( sink, bundle );
 
@@ -687,7 +696,11 @@ public class SurefireReportGenerator
         {
             sink.paragraph();
 
-            sink.text( "[" );
+            sink.text( " [" );
+            sinkLink( sink, bundle.getString( "report.surefire.label.top" ), "#top" );
+            sink.text( "]" );
+            
+            sink.text( " [" );
             sinkLink( sink, bundle.getString( "report.surefire.label.summary" ), "#Summary" );
             sink.text( "]" );
 
@@ -699,6 +712,14 @@ public class SurefireReportGenerator
             sinkLink( sink, bundle.getString( "report.surefire.label.testcases" ), "#Test_Cases" );
             sink.text( "]" );
 
+            List<ReportTestCase> failureList = report.getFailureDetails( testSuites );
+            if ( !failureList.isEmpty() )
+            {
+                sink.text( " [" );
+                sinkLink( sink, bundle.getString( "report.surefire.label.failuredetails" ), "#Failure_Details" );
+                sink.text( "]" );
+            }
+            
             sink.paragraph_();
         }
     }
@@ -744,7 +765,12 @@ public class SurefireReportGenerator
 
     private void sinkLink( Sink sink, String text, String link )
     {
-        sink.link( link );
+    	if ( link.startsWith( "#" ) )
+    	{
+    		link = "#" + DoxiaUtils.encodeId( link.substring( 1 ) );
+    	}
+    	
+    	sink.link( link );
         sink.text( text );
         sink.link_();
     }
