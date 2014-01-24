@@ -457,7 +457,7 @@ public class SurefireReportGenerator
                                 atts.addAttribute( SinkEventAttributes.STYLE, "display:inline" );
                                 sink.unknown( "div", new Object[]{ HtmlMarkup.TAG_TYPE_START }, atts );
 
-                                sink.link( "javascript:toggleDisplay('" + toHtmlId( testCase.getFullName() ) + "');" );
+                                sink.link( "javascript:toggleDisplay('" + toHtmlId( testCase.getFullName() ).replaceAll( "'", "" ) + "');" );
 
                                 atts = new SinkEventAttributeSet();
                                 atts.addAttribute( SinkEventAttributes.STYLE, "display:inline;" );
@@ -508,14 +508,14 @@ public class SurefireReportGenerator
                                     sink.tableCell();
                                     SinkEventAttributeSet atts = new SinkEventAttributeSet();
                                     atts.addAttribute( SinkEventAttributes.ID,
-                                                       toHtmlId( testCase.getFullName() ) + "error" );
+                                                       toHtmlId( testCase.getFullName() ).replaceAll( "'", "" ) + "error" );
                                     atts.addAttribute( SinkEventAttributes.STYLE, "display:none;" );
                                     sink.unknown( "div", new Object[]{ HtmlMarkup.TAG_TYPE_START }, atts );
 
                                     sink.verbatim( null );
                                     for ( String line : detail )
                                     {
-                                        sink.text( line );
+                                        sink.text( String.format( "%s\n", line ) );
                                         sink.lineBreak();
                                     }
                                     sink.verbatim_();
@@ -607,10 +607,6 @@ public class SurefireReportGenerator
                     sb.append( message );
                 }
 
-                sinkCell( sink, sb.toString() );
-
-                sink.tableRow_();
-
                 List<String> detail = (List<String>) failure.get( "detail" );
                 if ( detail != null )
                 {
@@ -626,9 +622,15 @@ public class SurefireReportGenerator
                         }
                         else
                         {
-                            sink.text( "    " );
+                        	sb.append("\n");
+                            sb.append( "    " );
+                            sb.append( line );
                         }
                     }
+
+                    sinkVerbatimCell( sink, sb.toString() );
+
+                    sink.tableRow_();
 
                     sink.tableRow();
 
@@ -656,9 +658,13 @@ public class SurefireReportGenerator
                     sink.unknown( "div", new Object[]{ HtmlMarkup.TAG_TYPE_END }, null );
 
                     sink.tableCell_();
-
-                    sink.tableRow_();
                 }
+                else
+                {
+                	sinkVerbatimCell( sink, sb.toString() );
+                }
+                
+                sink.tableRow_();
             }
 
             sink.tableRows_();
@@ -761,6 +767,15 @@ public class SurefireReportGenerator
         sink.tableCell();
         sink.text( text );
         sink.tableCell_();
+    }
+    
+    private void sinkVerbatimCell( Sink sink, String text )
+    {
+    	sink.tableCell();
+    	sink.verbatim( null );
+    	sink.text( text );
+    	sink.verbatim_();
+    	sink.tableCell_();
     }
 
     private void sinkLink( Sink sink, String text, String link )

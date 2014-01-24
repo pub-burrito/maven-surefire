@@ -25,6 +25,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -186,7 +187,7 @@ public class SurefireReportParser
 
     public Map<String, List<ReportTestSuite>> getSuitesGroupByPackage( List<ReportTestSuite> testSuitesList )
     {
-        Map<String, List<ReportTestSuite>> suitePackage = new HashMap<String, List<ReportTestSuite>>();
+        Map<String, List<ReportTestSuite>> suitePackage = new LinkedHashMap<String, List<ReportTestSuite>>();
 
         for ( ReportTestSuite suite : testSuitesList )
         {

@@ -92,6 +92,14 @@ public class TestSuiteXmlParser
     {
         SAXParserFactory factory = SAXParserFactory.newInstance();
 
+        /*
+        factory.setNamespaceAware(true);
+        factory.setValidating(false);
+        factory.setFeature("http://xml.org/sax/features/validation", false);
+        factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+        factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        */
+        
         SAXParser saxParser = factory.newSAXParser();
 
         valid = true;
@@ -122,6 +130,18 @@ public class TestSuiteXmlParser
         {
             return;
         }
+        
+        /*
+        System.out.println(
+        	String.format(
+        		"- XML: %s { %s=%s }", 
+        		qName, 
+        		attributes.getLength() > 0 ? attributes.getQName( 0 ) : "",
+        		attributes.getLength() > 0 ? attributes.getValue( 0 ) : ""
+        	)
+        );
+        */
+        
         try
         {
             if ( "testsuite".equals( qName ) )
@@ -244,6 +264,8 @@ public class TestSuiteXmlParser
             Map<String, Object> failure = testCase.getFailure();
 
             failure.put( "detail", parseCause( currentElement.toString() ) );
+            
+        	//System.out.println(String.format("- XML Failure: [%s]", failure));
         }
         else if ( "error".equals( qName ) )
         {
@@ -276,6 +298,7 @@ public class TestSuiteXmlParser
         {
             return;
         }
+        
         String s = new String( ch, start, length );
 
         if ( !"".equals( s.trim() ) )
