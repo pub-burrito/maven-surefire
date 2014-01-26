@@ -450,7 +450,6 @@ public class SurefireReportGenerator
 
                             sink.tableCell_();
 
-                            //TODO: Display detail regardless of failure
                             sinkDetailToggleCell( sink, testCase );
                             /*
                             if ( failure != null )
@@ -466,7 +465,6 @@ public class SurefireReportGenerator
 
                             sink.tableRow_();
 
-                            //TODO: display detail row for each log on top of failure details (all toggleable at once)
                             if ( failure != null )
                             {
                                 sinkFailureMessageRow( sink, testCase, failure );
@@ -519,7 +517,10 @@ public class SurefireReportGenerator
 		sinkLink( sink, testCase.getName(), "#" + testCase.getFullName() );
 
 		SinkEventAttributeSet atts = new SinkEventAttributeSet();
-		atts.addAttribute( SinkEventAttributes.CLASS, "detailToggle btn btn-xs btn-info" );
+		String btnType = testCase.getFailure() == null || testCase.getFailure().isEmpty() ? 
+							"btn-info" : "btn-danger";
+		
+		atts.addAttribute( SinkEventAttributes.CLASS, "detailToggle btn btn-xs " + btnType );
 		atts.addAttribute( SinkEventAttributes.STYLE, "display:block;float:right" );
 		atts.addAttribute( SinkEventAttributes.TYPE, "button" );
 		atts.addAttribute( "onclick", "javascript:toggleDisplay('" + toHtmlId( testCase.getFullName() ) + "');" );
@@ -790,22 +791,25 @@ public class SurefireReportGenerator
 
     private void sinkIcon( String type, Sink sink )
     {
-        sink.figure();
+        //sink.figure();
+        
+        SinkEventAttributeSet atts = new SinkEventAttributeSet();
+        atts.addAttribute( SinkEventAttributeSet.CLASS, "icon-sml" );
 
         if ( type.startsWith( "junit.framework" ) || "skipped".equals( type ) )
         {
-            sink.figureGraphics( "images/icon_warning_sml.gif" );
+            sink.figureGraphics( "images/icon_warning_sml.gif", atts );
         }
         else if ( type.startsWith( "success" ) )
         {
-            sink.figureGraphics( "images/icon_success_sml.gif" );
+            sink.figureGraphics( "images/icon_success_sml.gif", atts );
         }
         else
         {
-            sink.figureGraphics( "images/icon_error_sml.gif" );
+            sink.figureGraphics( "images/icon_error_sml.gif", atts );
         }
 
-        sink.figure_();
+        //sink.figure_();
     }
 
     private void sinkHeader( Sink sink, String header )
@@ -825,9 +829,20 @@ public class SurefireReportGenerator
     private void sinkVerbatimCell( Sink sink, String text )
     {
     	sink.tableCell();
-    	sink.verbatim( null );
+    	
+	    SinkEventAttributeSet atts = new SinkEventAttributeSet();
+	    atts.addAttribute( SinkEventAttributes.CLASS, "source" );
+	    sink.unknown( "div", new Object[]{ HtmlMarkup.TAG_TYPE_START }, atts );
+
+	    atts = new SinkEventAttributeSet();
+	    atts.addAttribute( SinkEventAttributes.CLASS, "prettyprint" );
+	    
+	    sink.verbatim( atts );
     	sink.text( text );
     	sink.verbatim_();
+    	
+	    sink.unknown( "div", new Object[]{ HtmlMarkup.TAG_TYPE_END }, null );
+
     	sink.tableCell_();
     }
 
