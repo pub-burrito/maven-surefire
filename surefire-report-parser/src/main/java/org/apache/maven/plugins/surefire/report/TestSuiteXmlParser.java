@@ -224,13 +224,21 @@ public class TestSuiteXmlParser
             }
             else if ( "failure".equals( qName ) )
             {
+                currentElement = new StringBuffer();
+
                 testCase.addFailure( attributes.getValue( "message" ), attributes.getValue( "type" ) );
                 currentSuite.setNumberOfFailures( 1 + currentSuite.getNumberOfFailures() );
             }
             else if ( "error".equals( qName ) )
             {
+                currentElement = new StringBuffer();
+                
                 testCase.addFailure( attributes.getValue( "message" ), attributes.getValue( "type" ) );
                 currentSuite.setNumberOfErrors( 1 + currentSuite.getNumberOfErrors() );
+            }
+            else if ( "system-out".equals( qName ) || "system-err".equals( qName ) )
+            {
+                currentElement = new StringBuffer();
             }
             else if ( "skipped".equals( qName ) )
             {
@@ -272,6 +280,10 @@ public class TestSuiteXmlParser
             Map<String, Object> error = testCase.getFailure();
 
             error.put( "detail", parseCause( currentElement.toString() ) );
+        }
+        else if ( "system-out".equals( qName ) || "system-err".equals( qName ) )
+        {
+            testCase.addLog( currentElement.toString(), qName );
         }
         else if ( "time".equals( qName ) )
         {

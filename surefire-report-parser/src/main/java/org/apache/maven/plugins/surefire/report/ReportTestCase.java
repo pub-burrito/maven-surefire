@@ -38,6 +38,8 @@ public class ReportTestCase
     private float time;
 
     private Map<String, Object> failure;
+    
+    private Map<String, Object> log;
 
     public String getName()
     {
@@ -83,6 +85,11 @@ public class ReportTestCase
     {
         return failure;
     }
+    
+    public Map<String, Object> getLog()
+    {
+        return log;
+    }
 
     public String getFullName()
     {
@@ -99,6 +106,13 @@ public class ReportTestCase
         failure = new HashMap<String, Object>();
         failure.put( "message", message );
         failure.put( "type", type );
+    }
+    
+    public void addLog( String message, String type )
+    {
+        log = log == null ? new HashMap<String, Object>() : log;
+        
+        log.put( type, message );
     }
 
     /**

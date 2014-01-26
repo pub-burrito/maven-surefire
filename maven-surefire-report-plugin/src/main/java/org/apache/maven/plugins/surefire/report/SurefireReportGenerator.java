@@ -21,6 +21,7 @@ package org.apache.maven.plugins.surefire.report;
 
 import java.io.File;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -375,7 +376,8 @@ public class SurefireReportGenerator
         sink.section1_();
     }
 
-    private void constructTestCasesSection( ResourceBundle bundle, Sink sink )
+    @SuppressWarnings( "unchecked" )
+	private void constructTestCasesSection( ResourceBundle bundle, Sink sink )
     {
         NumberFormat numberFormat = report.getNumberFormat();
 
@@ -423,7 +425,9 @@ public class SurefireReportGenerator
 
                     for ( ReportTestCase testCase : testCases )
                     {
-                        if ( testCase.getFailure() != null || showSuccess )
+                    	Map<String, Object> logs = testCase.getLog();
+                    	
+                        if ( testCase.getFailure() != null || logs != null || showSuccess )
                         {
                             sink.tableRow();
 
@@ -446,87 +450,38 @@ public class SurefireReportGenerator
 
                             sink.tableCell_();
 
+                            //TODO: Display detail regardless of failure
+                            sinkDetailToggleCell( sink, testCase );
+                            /*
                             if ( failure != null )
                             {
-                                sink.tableCell();
-
-                                sinkLink( sink, testCase.getName(), "#" + testCase.getFullName() );
-
-                                SinkEventAttributeSet atts = new SinkEventAttributeSet();
-                                atts.addAttribute( SinkEventAttributes.CLASS, "detailToggle" );
-                                atts.addAttribute( SinkEventAttributes.STYLE, "display:inline" );
-                                sink.unknown( "div", new Object[]{ HtmlMarkup.TAG_TYPE_START }, atts );
-
-                                sink.link( "javascript:toggleDisplay('" + toHtmlId( testCase.getFullName() ).replaceAll( "'", "" ) + "');" );
-
-                                atts = new SinkEventAttributeSet();
-                                atts.addAttribute( SinkEventAttributes.STYLE, "display:inline;" );
-                                atts.addAttribute( SinkEventAttributes.ID, toHtmlId( testCase.getFullName() ) + "off" );
-                                sink.unknown( "span", new Object[]{ HtmlMarkup.TAG_TYPE_START }, atts );
-                                sink.text( " + " );
-                                sink.unknown( "span", new Object[]{ HtmlMarkup.TAG_TYPE_END }, null );
-
-                                atts = new SinkEventAttributeSet();
-                                atts.addAttribute( SinkEventAttributes.STYLE, "display:none;" );
-                                atts.addAttribute( SinkEventAttributes.ID, toHtmlId( testCase.getFullName() ) + "on" );
-                                sink.unknown( "span", new Object[]{ HtmlMarkup.TAG_TYPE_START }, atts );
-                                sink.text( " - " );
-                                sink.unknown( "span", new Object[]{ HtmlMarkup.TAG_TYPE_END }, null );
-
-                                sink.text( "[ Detail ]" );
-                                sink.link_();
-
-                                sink.unknown( "div", new Object[]{ HtmlMarkup.TAG_TYPE_END }, null );
-
-                                sink.tableCell_();
                             }
                             else
                             {
                                 sinkCell( sink, testCase.getName() );
                             }
+                            */
 
                             sinkCell( sink, numberFormat.format( testCase.getTime() ) );
 
                             sink.tableRow_();
 
+                            //TODO: display detail row for each log on top of failure details (all toggleable at once)
                             if ( failure != null )
                             {
-                                sink.tableRow();
-
-                                sinkCell( sink, "" );
-                                sinkCell( sink, (String) failure.get( "message" ) );
-                                sinkCell( sink, "" );
-                                sink.tableRow_();
+                                sinkFailureMessageRow( sink, testCase, failure );
 
                                 List<String> detail = (List<String>) failure.get( "detail" );
-                                if ( detail != null )
-                                {
-
-                                    sink.tableRow();
-                                    sinkCell( sink, "" );
-
-                                    sink.tableCell();
-                                    SinkEventAttributeSet atts = new SinkEventAttributeSet();
-                                    atts.addAttribute( SinkEventAttributes.ID,
-                                                       toHtmlId( testCase.getFullName() ).replaceAll( "'", "" ) + "error" );
-                                    atts.addAttribute( SinkEventAttributes.STYLE, "display:none;" );
-                                    sink.unknown( "div", new Object[]{ HtmlMarkup.TAG_TYPE_START }, atts );
-
-                                    sink.verbatim( null );
-                                    for ( String line : detail )
-                                    {
-                                        sink.text( String.format( "%s\n", line ) );
-                                        sink.lineBreak();
-                                    }
-                                    sink.verbatim_();
-
-                                    sink.unknown( "div", new Object[]{ HtmlMarkup.TAG_TYPE_END }, null );
-                                    sink.tableCell_();
-
-                                    sinkCell( sink, "" );
-
-                                    sink.tableRow_();
-                                }
+                                
+                                sinkDetailRow( sink, testCase, detail, "error" );
+                            }
+                            
+                            if ( logs != null )
+                            {
+                            	for ( String logType : logs.keySet() )
+								{
+                                    sinkDetailRow( sink, testCase, Arrays.asList( (String) logs.get( logType ) ), logType );
+								}
                             }
                         }
                     }
@@ -545,10 +500,108 @@ public class SurefireReportGenerator
         sink.section1_();
     }
 
+	private void sinkFailureMessageRow( Sink sink, ReportTestCase testCase, Map<String, Object> failure )
+	{
+	    SinkEventAttributeSet atts = detailRowAttributes( testCase );
+
+	    sink.tableRow( atts );
+
+		sinkCell( sink, "" );
+		sinkCell( sink, (String) failure.get( "message" ) );
+		sinkCell( sink, "" );
+		sink.tableRow_();
+	}
+
+	private void sinkDetailToggleCell( Sink sink, ReportTestCase testCase )
+	{
+		sink.tableCell();
+
+		sinkLink( sink, testCase.getName(), "#" + testCase.getFullName() );
+
+		SinkEventAttributeSet atts = new SinkEventAttributeSet();
+		atts.addAttribute( SinkEventAttributes.CLASS, "detailToggle btn btn-xs btn-info" );
+		atts.addAttribute( SinkEventAttributes.STYLE, "display:block;float:right" );
+		atts.addAttribute( SinkEventAttributes.TYPE, "button" );
+		atts.addAttribute( "onclick", "javascript:toggleDisplay('" + toHtmlId( testCase.getFullName() ) + "');" );
+		
+		sink.unknown( "button", new Object[]{ HtmlMarkup.TAG_TYPE_START }, atts );
+
+		//sink.link( "javascript:toggleDisplay('" + toHtmlId( testCase.getFullName() ) + "');" );
+
+		atts = new SinkEventAttributeSet();
+		atts.addAttribute( SinkEventAttributes.STYLE, "display:inline;" );
+		atts.addAttribute( SinkEventAttributes.ID, toHtmlId( testCase.getFullName() ) + "off" );
+		sink.unknown( "span", new Object[]{ HtmlMarkup.TAG_TYPE_START }, atts );
+		sink.text( " + " );
+		sink.unknown( "span", new Object[]{ HtmlMarkup.TAG_TYPE_END }, null );
+
+		atts = new SinkEventAttributeSet();
+		atts.addAttribute( SinkEventAttributes.STYLE, "display:none;" );
+		atts.addAttribute( SinkEventAttributes.ID, toHtmlId( testCase.getFullName() ) + "on" );
+		sink.unknown( "span", new Object[]{ HtmlMarkup.TAG_TYPE_START }, atts );
+		sink.text( " - " );
+		sink.unknown( "span", new Object[]{ HtmlMarkup.TAG_TYPE_END }, null );
+
+		sink.text( "Detail" );
+		//sink.link_();
+
+		sink.unknown( "button", new Object[]{ HtmlMarkup.TAG_TYPE_END }, null );
+
+		sink.tableCell_();
+	}
+
+	private void sinkDetailRow( Sink sink, ReportTestCase testCase, List<String> detail, String detailType )
+	{
+		if ( detail != null )
+		{
+		    SinkEventAttributeSet atts = detailRowAttributes( testCase );
+		    
+		    sink.tableRow( atts );
+		    sinkCell( sink, "" );
+
+		    sink.tableCell();
+		    atts = new SinkEventAttributeSet();
+		    atts.addAttribute( SinkEventAttributes.ID,
+		                       toHtmlId( testCase.getFullName() ) + detailType );
+		    //atts.addAttribute( SinkEventAttributes.STYLE, "display:none;" );
+		    atts.addAttribute( SinkEventAttributes.CLASS, "source" );
+		    sink.unknown( "div", new Object[]{ HtmlMarkup.TAG_TYPE_START }, atts );
+
+		    atts = new SinkEventAttributeSet();
+		    atts.addAttribute( SinkEventAttributes.CLASS, "prettyprint" );
+		    
+		    sink.verbatim( atts );
+		    
+		    for ( String line : detail )
+		    {
+		        sink.text( String.format( "%s\n", line ) );
+		        sink.lineBreak();
+		    }
+		    
+		    sink.verbatim_();
+
+		    sink.unknown( "div", new Object[]{ HtmlMarkup.TAG_TYPE_END }, null );
+		    sink.tableCell_();
+
+		    sinkCell( sink, "" );
+
+		    sink.tableRow_();
+		}
+	}
+
+	private SinkEventAttributeSet detailRowAttributes( ReportTestCase testCase )
+	{
+		SinkEventAttributeSet atts = new SinkEventAttributeSet();
+		atts.addAttribute( SinkEventAttributes.CLASS,
+		                   toHtmlId( testCase.getFullName() ) + "detail" );
+		atts.addAttribute( SinkEventAttributes.STYLE, "display:none;" );
+		return atts;
+	}
+
 
     private String toHtmlId( String id )
     {
-        return id.replace( ".", "_" );
+        return id.replace( ".", "_" ).replaceAll( "'|\"", "" );
     }
 
     private void constructFailureDetails( Sink sink, ResourceBundle bundle, List<ReportTestCase> failureList )
@@ -819,20 +872,22 @@ public class SurefireReportGenerator
         // so we have to start with a newline and comment the CDATA closing in the end
         str.append( "\n" );
         str.append( "function toggleDisplay(elementId) {\n" );
-        str.append( " var elm = document.getElementById(elementId + 'error');\n" );
-        str.append( " if (elm && typeof elm.style != \"undefined\") {\n" );
-        str.append( " if (elm.style.display == \"none\") {\n" );
-        str.append( " elm.style.display = \"\";\n" );
-        str.append( " document.getElementById(elementId + 'off').style.display = \"none\";\n" );
-        str.append( " document.getElementById(elementId + 'on').style.display = \"inline\";\n" );
-        str.append( " }" );
-        str.append( " else if (elm.style.display == \"\") {" );
-        str.append( " elm.style.display = \"none\";\n" );
-        str.append( " document.getElementById(elementId + 'off').style.display = \"inline\";\n" );
-        str.append( " document.getElementById(elementId + 'on').style.display = \"none\";\n" );
+        str.append( " var elm = document.getElementsByClassName(elementId + 'detail');\n" );
+        str.append( " var offToggle = document.getElementById(elementId + 'off');\n" );
+        str.append( " var onToggle = document.getElementById(elementId + 'on');\n" );
+        str.append( " if (elm && elm.length > 0 && typeof elm[0].style != \"undefined\") {\n" );
+        str.append( "  if (elm[0].style.display == \"none\") {\n" );
+        str.append( "   for (i=0; i<elm.length; i++) { elm[i].style.display = \"\"; }\n" );
+        str.append( "   offToggle.style.display = \"none\";\n" );
+        str.append( "   onToggle.style.display = \"inline\";\n" );
+        str.append( "  }" );
+        str.append( "  else if (elm[0].style.display == \"\") {" );
+        str.append( "   for (i=0; i<elm.length; i++) { elm[i].style.display = \"none\"; }\n" );
+        str.append( "   offToggle.style.display = \"inline\";\n" );
+        str.append( "   onToggle.style.display = \"none\";\n" );
+        str.append( "  } \n" );
         str.append( " } \n" );
-        str.append( " } \n" );
-        str.append( " }\n" );
+        str.append( "}\n" );
         str.append( "//" );
 
         return str.toString();
