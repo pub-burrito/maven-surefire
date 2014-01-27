@@ -450,16 +450,14 @@ public class SurefireReportGenerator
 
                             sink.tableCell_();
 
-                            sinkDetailToggleCell( sink, testCase );
-                            /*
-                            if ( failure != null )
+                            if ( failure != null || logs != null )
                             {
+                            	sinkDetailToggleCell( sink, testCase );
                             }
                             else
                             {
                                 sinkCell( sink, testCase.getName() );
                             }
-                            */
 
                             sinkCell( sink, numberFormat.format( testCase.getTime() ) );
 
