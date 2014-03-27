@@ -21,7 +21,9 @@ package org.apache.maven.plugins.surefire.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -47,6 +50,19 @@ public class SurefireReportParser
     private static final String EXCLUDES = "*.txt, testng-failed.xml, testng-failures.xml, testng-results.xml, failsafe-summary*.xml";
 
     private NumberFormat numberFormat = NumberFormat.getInstance();
+    
+	private DateFormat durationFormat = dateFormat( Locale.ENGLISH );
+
+	@SuppressWarnings( "serial" )
+	protected SimpleDateFormat dateFormat( Locale locale )
+	{
+		return new SimpleDateFormat( "HH:mm:ss", locale )
+		{
+			{
+				setTimeZone( TimeZone.getTimeZone( "GMT" ) );
+			}
+		};
+	}
 
     private List<File> reportsDirectories;
 
@@ -163,7 +179,7 @@ public class SurefireReportParser
 
         totalSummary.put( "totalSkipped", Integer.toString( totalNumberOfSkipped ) );
 
-        totalSummary.put( "totalElapsedTime", numberFormat.format( totalElapsedTime ) );
+        totalSummary.put( "totalElapsedTime", durationFormat.format( getDurationInMilliseconds( totalElapsedTime ) ) );
 
         totalSummary.put( "totalPercentage", totalPercentage );
 
@@ -178,11 +194,22 @@ public class SurefireReportParser
     public final void setLocale( Locale locale )
     {
         numberFormat = NumberFormat.getInstance( locale );
+        durationFormat = dateFormat( locale );
+    }
+    
+    public long getDurationInMilliseconds( float elapsedTimeInSeconds )
+    {
+    	return Math.round( elapsedTimeInSeconds * 1000 );
     }
 
     public NumberFormat getNumberFormat()
     {
         return this.numberFormat;
+    }
+    
+    public DateFormat getDurationFormat()
+    {
+    	return this.durationFormat;
     }
 
     public Map<String, List<ReportTestSuite>> getSuitesGroupByPackage( List<ReportTestSuite> testSuitesList )

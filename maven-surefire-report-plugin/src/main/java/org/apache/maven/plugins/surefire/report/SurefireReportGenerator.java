@@ -20,6 +20,7 @@ package org.apache.maven.plugins.surefire.report;
  */
 
 import java.io.File;
+import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -185,7 +186,9 @@ public class SurefireReportGenerator
     private void constructPackagesSection( ResourceBundle bundle, Sink sink,
                                            Map<String, List<ReportTestSuite>> suitePackages )
     {
-        NumberFormat numberFormat = report.getNumberFormat();
+        @SuppressWarnings( "unused" )
+		NumberFormat numberFormat = report.getNumberFormat();
+        DateFormat durationFormat = report.getDurationFormat();
 
         sink.section1();
         
@@ -357,7 +360,7 @@ public class SurefireReportGenerator
                                                       suite.getNumberOfFailures(), suite.getNumberOfSkipped() );
                         sinkCell( sink, percentage + "%" );
 
-                        sinkCell( sink, numberFormat.format( suite.getTimeElapsed() ) );
+                        sinkCell( sink, durationFormat.format( report.getDurationInMilliseconds( suite.getTimeElapsed() ) ) );
 
                         sink.tableRow_();
                     }
