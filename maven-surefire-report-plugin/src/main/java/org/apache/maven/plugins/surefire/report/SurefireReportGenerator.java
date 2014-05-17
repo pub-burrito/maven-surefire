@@ -86,6 +86,7 @@ public class SurefireReportGenerator
         sink.section1();
         sink.sectionTitle1();
         sink.text( bundle.getString( "report.surefire.header" ) );
+        //sink.text( String.format(" - Suites: %s", testSuites) );
         sink.sectionTitle1_();
         sink.section1_();
 

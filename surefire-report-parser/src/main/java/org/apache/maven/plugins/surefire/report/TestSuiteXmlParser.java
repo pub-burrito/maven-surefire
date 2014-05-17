@@ -166,11 +166,13 @@ public class TestSuiteXmlParser
                     String name = attributes.getValue( "name" );
 
                     defaultSuite.setFullClassName( packageName + "." + name );
+                    defaultSuite.setName( name );
                 }
                 else
                 {
                     String fullClassName = attributes.getValue( "name" );
                     defaultSuite.setFullClassName( fullClassName );
+                    defaultSuite.setName( fullClassName.substring( fullClassName.lastIndexOf( "." ) + 1 ) );
                 }
 
                 suites.add( defaultSuite );
@@ -193,7 +195,7 @@ public class TestSuiteXmlParser
                     if ( currentSuiteIndex == null )
                     {
                         currentSuite = new ReportTestSuite();
-                        currentSuite.setFullClassName( fullClassName );
+                        currentSuite.setFullClassName( defaultSuite.getName() + ": " + fullClassName );
                         suites.add( currentSuite );
                         classesToSuitesIndex.put( fullClassName, suites.size() - 1 );
                     } else
@@ -347,5 +349,10 @@ public class TestSuiteXmlParser
     public boolean isValid()
     {
         return valid;
+    }
+    
+    public ReportTestSuite getDefaultSuite()
+    {
+    	return defaultSuite;
     }
 }
