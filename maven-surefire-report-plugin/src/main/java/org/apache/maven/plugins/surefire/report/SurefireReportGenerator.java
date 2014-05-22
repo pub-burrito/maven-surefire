@@ -394,6 +394,8 @@ public class SurefireReportGenerator
         sink.sectionTitle1_();
 
         constructHotLinks( sink, bundle );
+        
+        DateFormat durationFormat = report.getDurationFormat();
 
         for ( ReportTestSuite suite : testSuites )
         {
@@ -463,7 +465,7 @@ public class SurefireReportGenerator
                                 sinkCell( sink, testCase.getName() );
                             }
 
-                            sinkCell( sink, numberFormat.format( testCase.getTime() ) );
+                            sinkCell( sink, durationFormat.format( report.getDurationInMilliseconds( testCase.getTime() ) ) );
 
                             sink.tableRow_();
 
