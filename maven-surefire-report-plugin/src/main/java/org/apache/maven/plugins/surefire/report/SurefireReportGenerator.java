@@ -573,7 +573,11 @@ public class SurefireReportGenerator
 		    sink.unknown( "div", new Object[]{ HtmlMarkup.TAG_TYPE_START }, atts );
 
 		    atts = new SinkEventAttributeSet();
-		    atts.addAttribute( SinkEventAttributes.CLASS, "prettyprint" );
+		    
+		    if ( detailType.equals( "error" ) )
+		    {
+		    	atts.addAttribute( SinkEventAttributes.CLASS, "prettyprint" );
+		    }
 		    
 		    sink.verbatim( atts );
 		    
